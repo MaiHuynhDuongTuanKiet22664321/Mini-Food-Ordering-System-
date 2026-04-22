@@ -48,14 +48,39 @@ export const userRegister = async (name, username, password) => {
   return response.data;
 };
 
+export const getAllUsers = async () => {
+  const response = await userApi.get('/users');
+  return response.data;
+};
+
 // Food Service API calls
 export const getFoodList = async () => {
   const response = await foodApi.get('/foods');
   return response.data;
 };
 
+export const getFoods = async () => {
+  const response = await foodApi.get('/foods');
+  return response.data;
+};
+
 export const getFoodById = async (foodId) => {
   const response = await foodApi.get(`/foods/${foodId}`);
+  return response.data;
+};
+
+export const addFood = async (foodData) => {
+  const response = await foodApi.post('/foods', foodData);
+  return response.data;
+};
+
+export const updateFood = async (foodId, foodData) => {
+  const response = await foodApi.put(`/foods/${foodId}`, foodData);
+  return response.data;
+};
+
+export const deleteFood = async (foodId) => {
+  const response = await foodApi.delete(`/foods/${foodId}`);
   return response.data;
 };
 
@@ -93,6 +118,11 @@ export const getNotifications = async (userId) => {
 
 export const markNotificationAsRead = async (notificationId) => {
   const response = await paymentApi.patch(`/notifications/${notificationId}/read`);
+  return response.data;
+};
+
+export const getAllNotifications = async () => {
+  const response = await paymentApi.get('/notifications');
   return response.data;
 };
 

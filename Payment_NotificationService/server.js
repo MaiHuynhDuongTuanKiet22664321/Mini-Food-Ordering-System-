@@ -121,17 +121,29 @@ app.get('/payments/:paymentId/status', async (req, res) => {
 
 // GET /notifications/:userId - Get notifications for a user
 app.get('/notifications/:userId', async (req, res) => {
+  const { userId } = req.params;
   let conn;
   try {
-    const { userId } = req.params;
     conn = await pool.getConnection();
-    const rows = await conn.query(
-      'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
-      [userId]
-    );
+    const rows = await conn.query('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20', [userId]);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching notifications:', error.message);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// GET /notifications - Get all notifications (admin only)
+app.get('/notifications', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query('SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching all notifications:', error.message);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   } finally {
     if (conn) conn.release();

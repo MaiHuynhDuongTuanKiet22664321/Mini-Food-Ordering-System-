@@ -8,6 +8,11 @@ import Register from './components/Register';
 import FoodList from './components/FoodList';
 import Cart from './components/Cart';
 import Order from './components/Order';
+import AdminDashboard from './components/admin/AdminDashboard';
+import DashboardOverview from './components/admin/DashboardOverview';
+import FoodManagement from './components/admin/FoodManagement';
+import UserManagement from './components/admin/UserManagement';
+import NotificationsManagement from './components/admin/NotificationsManagement';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -19,6 +24,20 @@ const ProtectedRoute = ({ children }) => {
   
   if (!user) {
     return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+  
+  if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
+    return <Navigate to="/" />;
   }
   
   return children;
@@ -57,6 +76,19 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<DashboardOverview />} />
+                <Route path="food" element={<FoodManagement />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="notifications" element={<NotificationsManagement />} />
+              </Route>
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

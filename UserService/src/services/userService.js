@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 class UserService {
-  async register(username, password, role = 'USER') {
+  async register(name, username, password, role = 'USER') {
     let conn;
     try {
       conn = await pool.getConnection();
@@ -17,11 +17,11 @@ class UserService {
 
       const normalizedRole = role === 'ADMIN' ? 'ADMIN' : 'USER';
       const result = await conn.query(
-        'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-        [username, password, normalizedRole]
+        'INSERT INTO users (name, username, password, role) VALUES (?, ?, ?, ?)',
+        [name, username, password, normalizedRole]
       );
 
-      return { id: Number(result.insertId), username, role: normalizedRole };
+      return { id: Number(result.insertId), name, username, role: normalizedRole };
     } catch (error) {
       throw error;
     } finally {
@@ -35,7 +35,7 @@ class UserService {
       conn = await pool.getConnection();
       
       const users = await conn.query(
-        'SELECT id, username, password, role FROM users WHERE username = ? AND password = ?',
+        'SELECT id, name, username, password, role FROM users WHERE username = ? AND password = ?',
         [username, password]
       );
 
@@ -44,7 +44,7 @@ class UserService {
       }
 
       const user = users[0];
-      return { id: Number(user.id), username: user.username, role: user.role };
+      return { id: Number(user.id), name: user.name, username: user.username, role: user.role };
     } catch (error) {
       throw error;
     } finally {
@@ -58,13 +58,15 @@ class UserService {
       conn = await pool.getConnection();
       
       const users = await conn.query(
-        'SELECT id, username, role FROM users'
+        'SELECT id, name, username, role, created_at FROM users'
       );
 
       return users.map(user => ({
         id: Number(user.id),
+        name: user.name,
         username: user.username,
-        role: user.role
+        role: user.role,
+        created_at: user.created_at
       }));
     } catch (error) {
       throw error;
@@ -79,7 +81,7 @@ class UserService {
       conn = await pool.getConnection();
       
       const users = await conn.query(
-        'SELECT id, username, role FROM users WHERE id = ?',
+        'SELECT id, name, username, role, created_at FROM users WHERE id = ?',
         [id]
       );
 
@@ -90,8 +92,10 @@ class UserService {
       const user = users[0];
       return {
         id: Number(user.id),
+        name: user.name,
         username: user.username,
-        role: user.role
+        role: user.role,
+        created_at: user.created_at
       };
     } catch (error) {
       throw error;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { userRegister } from '../services/api';
 import './Login.css';
 
@@ -10,6 +11,7 @@ const Register = ({ onToggleLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +21,13 @@ const Register = ({ onToggleLogin }) => {
     try {
       const response = await userRegister(name, username, password);
       login(response.user, response.token);
+      
+      // Role-based redirect
+      if (response.user.role === 'admin' || response.user.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {

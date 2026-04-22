@@ -20,7 +20,13 @@ const Login = ({ onToggleRegister }) => {
     try {
       const response = await userLogin(username, password);
       login(response.user, response.token);
-      navigate('/');
+      
+      // Role-based redirect
+      if (response.user.role === 'admin' || response.user.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {

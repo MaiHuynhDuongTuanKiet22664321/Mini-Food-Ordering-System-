@@ -48,15 +48,18 @@ app.post('/payments', async (req, res) => {
         'INSERT INTO payments (order_id, user_id, method, status, created_at) VALUES (?, ?, ?, ?, NOW())',
         [orderId, userId || 1, method, 'PAID']
       );
+      console.log('Payment record saved successfully');
 
       // Save notification
       await conn.query(
         'INSERT INTO notifications (user_id, message, type, created_at) VALUES (?, ?, ?, NOW())',
         [userId || 1, `Đơn hàng #${orderId} đã thanh toán thành công bằng ${method}`, 'PAYMENT']
       );
+      console.log('Notification saved successfully');
     } catch (dbError) {
       console.error('Database error:', dbError.message);
-      // Continue even if DB logging fails
+      console.error('Full error details:', dbError);
+      throw new Error(`Failed to save payment/notification to database: ${dbError.message}`);
     } finally {
       if (conn) conn.release();
     }

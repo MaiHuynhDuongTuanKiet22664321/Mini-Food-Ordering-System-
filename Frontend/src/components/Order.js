@@ -65,7 +65,7 @@ const Order = () => {
         orderId: orderResponse.id,
         userId: user.id,
         amount: orderResponse.totalAmount,
-        method: 'credit_card',
+        method: 'COD',
       };
 
       await createPayment(paymentData);

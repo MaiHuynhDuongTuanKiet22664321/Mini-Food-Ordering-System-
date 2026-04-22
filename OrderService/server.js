@@ -128,17 +128,31 @@ app.get('/orders', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query('SELECT * FROM orders');
-    const orders = rows.map(row => ({
-      id: row.id,
-      userId: row.user_id,
-      items: JSON.parse(row.items),
-      totalPrice: row.total_price,
-      status: row.status,
-      createdAt: row.created_at
-    }));
+    const orders = rows.map(row => {
+      try {
+        return {
+          id: row.id,
+          userId: row.user_id,
+          items: JSON.parse(row.items),
+          totalPrice: row.total_price,
+          status: row.status,
+          createdAt: row.created_at
+        };
+      } catch (parseError) {
+        logger.error('Failed to parse items for order:', row.id, parseError.message);
+        return {
+          id: row.id,
+          userId: row.user_id,
+          items: [],
+          totalPrice: row.total_price,
+          status: row.status,
+          createdAt: row.created_at
+        };
+      }
+    });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching orders:', error.message);
+    logger.error('Error fetching orders:', error.message);
     res.status(500).json({ error: 'Failed to fetch orders from database' });
   } finally {
     if (conn) conn.release();
@@ -155,17 +169,24 @@ app.get('/orders/:id', async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
+    let items;
+    try {
+      items = JSON.parse(rows[0].items);
+    } catch (parseError) {
+      logger.error('Failed to parse items for order:', id, parseError.message);
+      items = [];
+    }
     const order = {
       id: rows[0].id,
       userId: rows[0].user_id,
-      items: JSON.parse(rows[0].items),
+      items: items,
       totalPrice: rows[0].total_price,
       status: rows[0].status,
       createdAt: rows[0].created_at
     };
     res.json(order);
   } catch (error) {
-    console.error('Error fetching order:', error.message);
+    logger.error('Error fetching order:', error.message);
     res.status(500).json({ error: 'Failed to fetch order from database' });
   } finally {
     if (conn) conn.release();
@@ -194,17 +215,24 @@ app.patch('/orders/:id', async (req, res) => {
     }
 
     const rows = await conn.query('SELECT * FROM orders WHERE id = ?', [id]);
+    let items;
+    try {
+      items = JSON.parse(rows[0].items);
+    } catch (parseError) {
+      logger.error('Failed to parse items for order:', id, parseError.message);
+      items = [];
+    }
     const order = {
       id: rows[0].id,
       userId: rows[0].user_id,
-      items: JSON.parse(rows[0].items),
+      items: items,
       totalPrice: rows[0].total_price,
       status: rows[0].status,
       createdAt: rows[0].created_at
     };
     res.json(order);
   } catch (error) {
-    console.error('Error updating order:', error.message);
+    logger.error('Error updating order:', error.message);
     res.status(500).json({ error: 'Failed to update order in database' });
   } finally {
     if (conn) conn.release();
